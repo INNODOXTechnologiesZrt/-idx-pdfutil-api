@@ -1,0 +1,4 @@
+rootProject.name = 'idx-pdfutil-api'
+include 'idx-pdfutil-api-rest'
+include 'idx-pdfutil-api-services'
+

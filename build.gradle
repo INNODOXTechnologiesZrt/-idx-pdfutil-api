@@ -1,0 +1,110 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.0.6'
+    id 'io.spring.dependency-management' version '1.1.0'
+    id 'jacoco-report-aggregation'
+    id "org.sonarqube" version "4.0.0.2929"
+}
+group = 'com.innodox'
+
+bootJar {
+	archiveFileName = "idx-pdfutil-api.jar"
+}
+
+java {
+    sourceCompatibility = '17'
+}
+apply plugin: 'jacoco'
+jacoco {
+    toolVersion = '0.8.7'
+}
+
+jacocoTestReport {
+    //executionData integrationTest
+    reports {
+//		xml.enabled false
+//		html.enabled true
+        html.destination file("${buildDir}/jacoco")
+    }
+    dependsOn test//, integrationTest
+}
+
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+
+
+sonarqube {
+    properties {
+        property "sonar.projectName", "${project.name}"
+        property "sonar.host.url", "http://localhost:9000"
+        property "sonar.sourceEncoding", "UTF-8"
+        property "sonar.projectKey", "${project.name}"
+    }
+}
+
+
+
+allprojects {
+    apply plugin: 'java'
+
+    dependencies {
+
+        // Spring
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+
+        // Lombok
+        compileOnly 'org.projectlombok:lombok:1.18.30'
+        annotationProcessor 'org.projectlombok:lombok:1.18.30'
+        testCompileOnly 'org.projectlombok:lombok:1.18.30'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+        // Mapstruct
+        implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+        annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+}
+
+dependencies {
+
+    implementation project(':idx-pdfutil-api-rest')
+    implementation project(':idx-pdfutil-api-services')
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('testCodeCoverageReport', JacocoReport)
+}
+
+
+compileJava {
+    options.compilerArgs += [
+            '-Amapstruct.suppressGeneratorTimestamp=true',
+            '-Amapstruct.suppressGeneratorVersionInfoComment=true',
+            '-Amapstruct.verbose=true'
+    ]
+}
