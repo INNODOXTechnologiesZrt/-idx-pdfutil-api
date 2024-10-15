@@ -4,12 +4,10 @@
 IDX PDF Util API is a REST service as a Spring Boot Application providing some useful operations on PDF files using iText library.
 
 Operations:
-* Extracting attachments from pdf
-* Merging multiple pdfs into one
-* Stamping watermarks on pdf
+* Count pages of the pdf document
+* Get a page of the pdf document by page number
 * Adding folding lines
-* Attaching files
-* Paging
+* see the openapi specification for further information: idx-pdfutil-api-rest/src/main/resources/static/openapi.yml
 
 
 ## Prerequisites:
