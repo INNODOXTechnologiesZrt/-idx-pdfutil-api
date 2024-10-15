@@ -1,0 +1,165 @@
+openapi: '3.0.2'
+info:
+  title: IDX PDF-Util Api
+  version: '1.0.0'
+tags:
+  - name: IDX PDF Util
+servers:
+  - url: https://idx-pdfutil-api/api/v1
+security:
+  - basicAuth: [ ]
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+
+  schemas:
+    Point:
+      type: object
+      properties:
+        x:
+          type: number
+          format: float
+          example: 10.5
+        y:
+          type: number
+          format: float
+          example: 20.5
+      required:
+        - x
+        - y
+
+    FoldingLine:
+      type: object
+      properties:
+        startPoint:
+          $ref: '#/components/schemas/Point'
+        endPoint:
+          $ref: '#/components/schemas/Point'
+      required:
+        - startPoint
+        - endPoint
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+paths:
+  /addFoldingLines:
+    post:
+      summary: Add folding lines to a document
+      operationId: addFoldingLines
+      tags:
+        - IDX PDF Util
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                document:
+                  type: string
+                  format: binary
+                  description: The document
+                foldingLines:
+                  type: array
+                  description: A list of folding lines
+                  items:
+                    $ref: '#/components/schemas/FoldingLine'
+                requestId:
+                  type: string
+                  description: Request id
+                  example: d36f25c8-2844-4b70-a128-24d9aa6bdbc0
+              required:
+                - document
+                - foldingLines
+      responses:
+        '200':
+          description: The requested document with folding lines as a byte array (image or other format)
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid request (e.g., empty file or invalid folding line data)
+
+  /getPageCount:
+    post:
+      summary: Get the page count of a document
+      operationId: getPageCount
+      tags:
+        - IDX PDF Util
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                document:
+                  type: string
+                  format: binary
+                  description: The document file for which to get the page count
+                requestId:
+                  type: string
+                  description: Request id
+                  example: d36f25c8-2844-4b70-a128-24d9aa6bdbc0
+              required:
+                - document
+      responses:
+        '200':
+          description: Page count retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pageCount:
+                    type: integer
+                    description: The number of pages in the document
+        '400':
+          description: Invalid request (e.g., empty file)
+
+  /getPage:
+    post:
+      summary: Get a specific page from the document
+      operationId: getPage
+      tags:
+        - IDX PDF Util
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                document:
+                  type: string
+                  format: binary
+                  description: The document file from which to extract a page
+                pageNumber:
+                  type: integer
+                  description: The page number to extract (starting from 1)
+                  example: 1
+                requestId:
+                  type: string
+                  description: Request id
+                  example: d36f25c8-2844-4b70-a128-24d9aa6bdbc0
+              required:
+                - document
+                - pageNumber
+      responses:
+        '200':
+          description: The requested page as a byte array (image or other format)
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid request (e.g., page number out of bounds or empty file)

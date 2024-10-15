@@ -1,0 +1,72 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.0.6' apply false
+    id 'io.spring.dependency-management' version '1.1.0'
+    id 'jacoco'
+    id "org.openapi.generator" version "7.4.0"
+}
+
+group = 'org.example'
+version = '0.0.1-SNAPSHOT'
+
+
+dependencyManagement {
+    imports {
+        mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+    }
+}
+
+dependencies {
+    implementation project(path: ':idx-pdfutil-api-services')
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.4'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.0'
+
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    skipValidateSpec = true
+    inputSpec = "${sourceSets.main.resources.srcDirs[0]}/static/openapi.yml".toString()
+    outputDir = "$buildDir/idx-pdfutil-api/generated/openapi".toString()
+    apiPackage = "com.innodox.pdfutilapi.rest.api.generated"
+    modelPackage = "com.innodox.pdfutilapi.rest.model.generated"
+    configOptions = [
+            useSpringBoot3           : "true" //for example: using jakarta.* instead of javax.*
+            , interfaceOnly          : "true"
+            , hideGenerationTimestamp: "true"
+            , openApiNullable        : "false"
+            , dateLibrary            : "java8-localdatetime"
+            , useTags                : "true"
+    ]
+}
+tasks.openApiGenerate {
+    def src = "$buildDir\\idx-pdfutil-api\\generated\\openapi\\src\\main\\java\\com\\innodox\\pdfutilapi\\rest".toString()
+    def dst = "$rootDir\\idx-pdfutil-api-rest\\src\\main\\java\\com\\innodox\\pdfutilapi\\rest".toString()
+    doLast {
+//        println src
+//        println dst
+        copy {
+            from src
+            into dst
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+task deleteGeneratedFolder(type: Delete) {
+    delete 'src/main/java/com/innodox/pdfutilapi/rest/api/generated'
+    delete 'src/main/java/com/innodox/pdfutilapi/rest/model/generated'
+}
+
+tasks.openApiGenerate.dependsOn clean
+tasks.openApiGenerate.dependsOn deleteGeneratedFolder
+
